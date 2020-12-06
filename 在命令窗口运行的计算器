@@ -1,0 +1,166 @@
+#include<iostream>
+#include<stack>
+#include<string>
+using namespace std;
+/*bool priorityJudgment(char a, char b);
+double stackC(string s);
+double figure(double a, double b, char c);*/
+bool priorityJudgment(char a, char b)
+{
+	//优先级判断如果a>b，则返回true(@为表达式结束位) 
+	if (a == '+' && b == '+')
+		return false;
+	if (a == '+' && b == '-')
+		return false;
+	if (a == '+' && b == '*')
+		return false;
+	if (a == '+' && b == '/')
+		return false;
+	if (a == '+' && b == '(')
+		return true;
+	if (a == '-' && b == '+')
+		return false;
+	if (a == '-' && b == '-')
+		return false;
+	if (a == '-' && b == '*')
+		return false;
+	if (a == '-' && b == '/')
+		return false;
+	if (a == '-' && b == '(')
+		return true;
+	if (a == '*' && b == '+')
+		return true;
+	if (a == '*' && b == '-')
+		return true;
+	if (a == '*' && b == '*')
+		return false;
+	if (a == '*' && b == '/')
+		return false;
+	if (a == '*' && b == '(')
+		return true;
+	if (a == '/' && b == '+')
+		return true;
+	if (a == '/' && b == '-')
+		return true;
+	if (a == '/' && b == '*')
+		return false;
+	if (a == '/' && b == '/')
+		return false;
+	if (a == '/' && b == '(')
+		return true;
+}
+double figure(double a, double b, char c)//进行符号计算 
+{
+	switch (c)
+	{
+	case'+':
+		return a + b;
+	case'-':
+		return a - b;
+	case'*':
+		return a * b;
+	case'/':
+		return a / b;
+		return 0;
+	}
+}
+double stackC(string s)
+{
+	stack<char> operatorStack;
+	stack<double> constantStack;
+	int size = s.size();
+	string keepnum = "";
+	for (int i = 0; i < size; i++)
+	{
+		if (s[i] == '.')
+		{
+			//排除.和运算符一起出现的情况
+			if (i == 0 || i == size - 1 || s[i - 1] == '+' || s[i - 1] == '-' || s[i - 1] == '*' || s[i - 1] == '/' || s[i - 1] == '(' || s[i - 1] == ')' || s[i + 1] == '+' || s[i + 1] == '-' || s[i + 1] == '*' || s[i + 1] == '/' || s[i + 1] == '(' || s[i + 1] == ')')
+				return -1.123;
+		}
+		if (s[i] != '+' && s[i] != '-' && s[i] != '*' && s[i] != '/' && s[i] != '(' && s[i] != ')')
+		{
+			keepnum += s[i];
+			//如果ch是最后一位了则直接入栈
+			if (i == size - 1) {
+				constantStack.push(double(std::stoi(keepnum)));//将常量压入常量栈
+			}
+			else {
+				//判断下一个字符是不是数字，如果是继续扫描
+				for(; s[i + 1] != '+' && s[i + 1] != '-' && s[i + 1] != '*' && s[i + 1] != '/' && s[i + 1] != '(' && s[i + 1] != ')'&&i+1<size;i++)
+				{
+					keepnum += s[i+1];
+				}
+				double d = atof(const_cast<const char*>(keepnum.c_str()));
+				constantStack.push(d);
+				keepnum = "";//这里一定要清空keepnum
+			}
+		}
+		if (s[i] == '(')
+		{
+			operatorStack.push(s[i]);//左括号优先级最高直接压入运算符栈
+			continue;
+		}
+		if (s[i] == '+' || s[i] == '-' || s[i] == '*' || s[i] == '/')
+		{
+			//排除两个运算符同时出现的情况
+			if (i == 0 || i == size - 1 || s[i - 1] == '+' || s[i - 1] == '-' || s[i - 1] == '*' || s[i - 1] == '/' || s[i - 1] == '(' || s[i + 1] == '+' || s[i + 1] == '-' || s[i + 1] == '*' || s[i + 1] == '/' || s[i + 1] == ')')
+			{
+				return -1.123;
+			}
+
+			if (operatorStack.empty())//当栈为空时直接入栈，不为空时比较优先级
+			{
+				operatorStack.push(s[i]);
+				continue;
+			}
+			char temp = operatorStack.top();
+
+			if (priorityJudgment(s[i], temp))
+				operatorStack.push(s[i]);
+			else 				//出栈
+			{
+				char c = operatorStack.top();
+				operatorStack.pop();
+				double a = constantStack.top();
+				constantStack.pop();
+				double b = constantStack.top();
+				constantStack.pop();
+				constantStack.push(figure(b, a, c));
+				operatorStack.push(s[i]);
+			}
+		}
+		if (s[i] == ')')
+		{
+			while (operatorStack.top() != '(')
+			{
+				char s = operatorStack.top();
+				operatorStack.pop();
+				double a = constantStack.top();
+				constantStack.pop();
+				double b = constantStack.top();
+				constantStack.pop();
+				constantStack.push(figure(b, a, s));
+			}
+			operatorStack.pop();
+		}
+		while (i == size - 1 && !operatorStack.empty())
+		{
+			char s = operatorStack.top();
+			operatorStack.pop();
+			double a = constantStack.top();
+			constantStack.pop();
+			double b = constantStack.top();
+			constantStack.pop();
+			constantStack.push(figure(b, a, s));
+		}
+	}
+	return constantStack.top();
+}
+
+int main()
+{
+	string str = "1.5-0.3*(8/3)";
+	cout << stackC(str);
+	return 0;
+}
